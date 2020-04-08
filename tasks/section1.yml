@@ -509,17 +509,63 @@
       - rule_1.3.1
 
 - name: "SCORED | 1.3.1 | PATCH | Stat AIDE DB"
-  stat: path=/var/lib/aide/aide.db
+  stat: 
+    path: /var/lib/aide/aide.db
   register: aide_db
+  when:
+      - ubuntu1804cis_rule_1_3_1
+  tags:
+      - level1
+      - scored
+      - aide
+      - patch
+      - rule_1.3.1
+
+- name: "SCORED | 1.3.1 | PATCH | Stat AIDE DB New | Check if new DB was generated"
+  stat: 
+    path: /var/lib/aide/aide.db.new
+  register: aide_db_new
+  when:
+      - ubuntu1804cis_rule_1_3_1
+  tags:
+      - level1
+      - scored
+      - aide
+      - patch
+      - rule_1.3.1
 
 - name: "SCORED | 1.3.1 | PATCH | Init AIDE | This may take a LONG time"
   command: /usr/sbin/aideinit
   args:
-      creates: /var/lib/aide/aide.db
+      creates: /var/lib/aide/aide.db.new
   when:
       - ubuntu1804cis_config_aide
       - ubuntu1804cis_rule_1_3_1
       - not aide_db.stat.exists
+      - not ubuntu1804cis_skip_for_travis
+  tags:
+      - level1
+      - scored
+      - aide
+      - patch
+      - rule_1.3.1
+
+- name: "SCORED | 1.3.1 | PATCH | Install DB"
+  copy:
+      src: /var/lib/aide/aide.db.new 
+      dest: /var/lib/aide/aide.db 
+      owner: root
+      group: root
+      mode: 0600
+      force: true
+      remote_src: true
+      unsafe_writes: no
+  notify:
+      - systemd restart tmp.mount
+  when:
+      - ubuntu1804cis_config_aide
+      - ubuntu1804cis_rule_1_3_1
+      - aide_db.stat.mtime < aide_db_new.stat.mtime
       - not ubuntu1804cis_skip_for_travis
   tags:
       - level1
