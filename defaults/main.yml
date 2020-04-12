@@ -54,7 +54,7 @@ ubuntu1804cis_rule_1_4_1: true
 ubuntu1804cis_rule_1_4_2: true
 ubuntu1804cis_rule_1_4_2_disable_password: true
 ubuntu1804cis_rule_1_4_3: true
-ubuntu1804cis_root_password: random
+ubuntu1804cis_root_password: none
 ubuntu1804cis_rule_1_5_1: true
 ubuntu1804cis_rule_1_5_2: true
 ubuntu1804cis_rule_1_5_3: true
@@ -343,8 +343,6 @@ ubuntu1804cis_host_allow:
   - "10.0.0.0/255.0.0.0"
   - "172.16.0.0/255.240.0.0"
   - "192.168.0.0/255.255.0.0"
-  - "98.174.129.168/255.255.255.240"
-  - "24.94.24.230/255.255.255.255"
 
 ubuntu1804cis_firewall: firewalld
 # ubuntu1804cis_firewall: iptables

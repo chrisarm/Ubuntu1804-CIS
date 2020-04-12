@@ -25,7 +25,7 @@
 
 - name: "PRELIM | Gather accounts with empty password fields"
   shell: "set -o pipefail;
-      cat /etc/shadow | awk -F: '($2 == \"\" ) {j++;print $1; } END {exit j}'"
+      cat /etc/shadow | grep -v root | awk -F: '($2 == \"\" ) {j++;print $1; } END {exit j}'"
   args:
       executable: /bin/bash
   register: empty_password_accounts

@@ -25,7 +25,7 @@
       state: absent
   when:
       - ubuntu1804cis_rule_1_1_1_1
-      - not ubuntu1804cis_skip_for_travis
+
   tags:
       - level1
       - scored
@@ -57,7 +57,7 @@
       state: absent
   when:
       - ubuntu1804cis_rule_1_1_1_2
-      - not ubuntu1804cis_skip_for_travis
+
   tags:
       - level1
       - scored
@@ -89,7 +89,7 @@
       state: absent
   when:
       - ubuntu1804cis_rule_1_1_1_3
-      - not ubuntu1804cis_skip_for_travis
+
   tags:
       - level1
       - scored
@@ -121,7 +121,7 @@
       state: absent
   when:
       - ubuntu1804cis_rule_1_1_1_4
-      - not ubuntu1804cis_skip_for_travis
+
   tags:
       - level1
       - scored
@@ -153,7 +153,7 @@
       state: absent
   when:
       - ubuntu1804cis_rule_1_1_1_5
-      - not ubuntu1804cis_skip_for_travis
+
   tags:
       - level1
       - scored
@@ -185,7 +185,7 @@
       state: absent
   when:
       - ubuntu1804cis_rule_1_1_1_6
-      - not ubuntu1804cis_skip_for_travis
+
   tags:
       - level1
       - scored
@@ -207,7 +207,7 @@
       - systemd restart tmp.mount
   when:
       - ubuntu1804cis_rule_1_1_2
-      - not ubuntu1804cis_skip_for_travis
+
   tags:
       - level2
       - scored
@@ -223,7 +223,7 @@
       state: started
   when:
       - ubuntu1804cis_rule_1_1_2
-      - not ubuntu1804cis_skip_for_travis
+
   tags:
       - level2
       - scored
@@ -483,6 +483,7 @@
       state: present
       install_recommends: false
   when:
+      - ubuntu1804cis_config_aide
       - ubuntu1804cis_rule_1_3_1
       - not postfix_installed.rc == 0
   tags:
@@ -500,6 +501,7 @@
       state: present
       install_recommends: false
   when:
+      - ubuntu1804cis_config_aide
       - ubuntu1804cis_rule_1_3_1
   tags:
       - level1
@@ -513,6 +515,7 @@
     path: /var/lib/aide/aide.db
   register: aide_db
   when:
+      - ubuntu1804cis_config_aide
       - ubuntu1804cis_rule_1_3_1
   tags:
       - level1
@@ -529,7 +532,7 @@
       - ubuntu1804cis_config_aide
       - ubuntu1804cis_rule_1_3_1
       - not aide_db.stat.exists
-      - not ubuntu1804cis_skip_for_travis
+
   tags:
       - level1
       - scored
@@ -542,6 +545,7 @@
     path: /var/lib/aide/aide.db.new
   register: aide_db_new
   when:
+      - ubuntu1804cis_config_aide
       - ubuntu1804cis_rule_1_3_1
   tags:
       - level1
@@ -557,7 +561,7 @@
       owner: root
       group: root
       mode: 0600
-      force: true
+      force: false
       remote_src: true
       unsafe_writes: no
   notify:
@@ -566,14 +570,20 @@
       - ubuntu1804cis_config_aide
       - ubuntu1804cis_rule_1_3_1
       - aide_db_new.stat.exists
-      - aide_db.stat.mtime < aide_db_new.stat.mtime
-      - not ubuntu1804cis_skip_for_travis
   tags:
       - level1
       - scored
       - aide
       - patch
       - rule_1.3.1
+
+- name: "SCORED | 1.3.1 | PATCH | Remove Temp DB Files"
+  file:
+      path: /var/lib/aide/aide.db.new
+      state: absent
+  when:
+      - ubuntu1804cis_config_aide
+      - ubuntu1804cis_rule_1_3_1
 
 - name: "SCORED | 1.3.2 | PATCH | Ensure filesystem integrity is regularly checked"
   cron:
@@ -670,9 +680,10 @@
 - name: "NOTSCORED | 1.4.3 | PATCH | Ensure authentication required for single user mode"
   shell: "set -o pipefail;
           if [ '{{ ubuntu1804cis_root_password }}' == 'random' ];
-          then PASSWORD=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c24); else PASSWORD='{{ ubuntu1804cis_root_password }}';
-          fi;
-          echo \"root:$PASSWORD\" | chpasswd"
+          then PASSWORD=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c24); elif [ '{{ ubuntu1804cis_root_password }}' == 'none' ]; then passwd -d root;else PASSWORD='{{ ubuntu1804cis_root_password }}';
+          echo \"root:$PASSWORD\" | chpasswd;
+          fi;"
+          
   args:
     executable: /bin/bash
   when:
@@ -727,7 +738,7 @@
   changed_when: false
   when:
       - ubuntu1804cis_rule_1_5_2
-      - not ubuntu1804cis_skip_for_travis
+
   tags:
       - level1
       - notscored
